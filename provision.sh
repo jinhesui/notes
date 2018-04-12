@@ -67,13 +67,55 @@ make python2.7-dev python-pip re2c supervisor unattended-upgrades whois vim libn
 
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
+# Install Nginx & PHP-FPM
+
+apt-get install -y --force-yes nginx php7.2-fpm
+
+# Install MySQL
+
+debconf-set-selections <<< "mysql-community-server mysql-community-server/root-pass password ${MYSQL_ROOT_PASSWORD}"
+debconf-set-selections <<< "mysql-community-server mysql-community-server/re-root-pass password ${MYSQL_ROOT_PASSWORD}"
+apt-get install -y mysql-server
+
+# Configure MySQL Password Lifetime
+
+echo "default_password_lifetime = 0" >> /etc/mysql/mysql.conf.d/mysqld.cnf
+
+mysql --user="root" --password="${MYSQL_ROOT_PASSWORD}" -e "CREATE USER '${MYSQL_NORMAL_USER}'@'0.0.0.0' IDENTIFIED BY '${MYSQL_NORMAL_USER_PASSWORD}';"
+mysql --user="root" --password="${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL ON *.* TO '${MYSQL_NORMAL_USER}'@'127.0.0.1' IDENTIFIED BY '${MYSQL_NORMAL_USER_PASSWORD}' WITH GRANT OPTION;"
+mysql --user="root" --password="${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL ON *.* TO '${MYSQL_NORMAL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_NORMAL_USER_PASSWORD}' WITH GRANT OPTION;"
+mysql --user="root" --password="${MYSQL_ROOT_PASSWORD}" -e "FLUSH PRIVILEGES;"
+service mysql restart
+
+# Add Timezone Support To MySQL
+
+mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql --user=root --password=${MYSQL_ROOT_PASSWORD} mysql
+
+# Setup Some PHP-FPM Options
+
+sed -i "s/error_reporting = .*/error_reporting = E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED/" /etc/php/7.1/fpm/php.ini
+sed -i "s/display_errors = .*/display_errors = Off/" /etc/php/7.2/fpm/php.ini
+sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/7.2/fpm/php.ini
+sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.2/fpm/php.ini
+sed -i "s/upload_max_filesize = .*/upload_max_filesize = 50M/" /etc/php/7.2/fpm/php.ini
+sed -i "s/post_max_size = .*/post_max_size = 50M/" /etc/php/7.2/fpm/php.ini
+sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.2/fpm/php.ini
+sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php/7.2/fpm/pool.d/www.conf
+
 # Install PHP Stuffs
 
-apt-get install -y --force-yes php7.1-cli php7.1 \
+apt-get install -y --force-yes php7.2-cli php7.2 \
 php-pgsql php-sqlite3 php-gd php-apcu \
-php-curl php7.1-mcrypt \
-php-imap php-mysql php-memcached php7.1-readline php-xdebug \
-php-mbstring php-xml php7.1-zip php7.1-intl php7.1-bcmath php-soap
+php-curl php-mcrypt \
+php-imap php-mysql php-memcached php7.2-readline php-xdebug \
+php-mbstring php-xml php-zip php-intl php-bcmath php-soap
+
+# Set Some PHP CLI Settings
+
+sudo sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.2/cli/php.ini
+sudo sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.2/cli/php.ini
+sudo sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.2/cli/php.ini
+sudo sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.2/cli/php.ini
 
 # Install Composer
 
@@ -82,28 +124,6 @@ mv composer.phar /usr/local/bin/composer
 
 # Add Composer Global Bin To Path
 printf "\nPATH=\"$(composer config -g home 2>/dev/null)/vendor/bin:\$PATH\"\n" | tee -a ~/.profile
-
-# Set Some PHP CLI Settings
-
-sudo sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.1/cli/php.ini
-sudo sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.1/cli/php.ini
-sudo sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.1/cli/php.ini
-sudo sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.1/cli/php.ini
-
-# Install Nginx & PHP-FPM
-
-apt-get install -y --force-yes nginx php7.1-fpm
-
-# Setup Some PHP-FPM Options
-
-sed -i "s/error_reporting = .*/error_reporting = E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED/" /etc/php/7.1/fpm/php.ini
-sed -i "s/display_errors = .*/display_errors = Off/" /etc/php/7.1/fpm/php.ini
-sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/7.1/fpm/php.ini
-sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.1/fpm/php.ini
-sed -i "s/upload_max_filesize = .*/upload_max_filesize = 50M/" /etc/php/7.1/fpm/php.ini
-sed -i "s/post_max_size = .*/post_max_size = 50M/" /etc/php/7.1/fpm/php.ini
-sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.1/fpm/php.ini
-sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php/7.1/fpm/pool.d/www.conf
 
 # Setup Some fastcgi_params Options
 
@@ -134,15 +154,15 @@ EOF
 sed -i "s/user www-data;/user www;/" /etc/nginx/nginx.conf
 sed -i "s/# server_names_hash_bucket_size.*/server_names_hash_bucket_size 64;/" /etc/nginx/nginx.conf
 
-sed -i "s/user = www-data/user = www/" /etc/php/7.1/fpm/pool.d/www.conf
-sed -i "s/group = www-data/group = www/" /etc/php/7.1/fpm/pool.d/www.conf
+sed -i "s/user = www-data/user = www/" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s/group = www-data/group = www/" /etc/php/7.2/fpm/pool.d/www.conf
 
-sed -i "s/listen\.owner.*/listen.owner = www/" /etc/php/7.1/fpm/pool.d/www.conf
-sed -i "s/listen\.group.*/listen.group = www/" /etc/php/7.1/fpm/pool.d/www.conf
-sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.1/fpm/pool.d/www.conf
+sed -i "s/listen\.owner.*/listen.owner = www/" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s/listen\.group.*/listen.group = www/" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.2/fpm/pool.d/www.conf
 
 service nginx restart
-service php7.1-fpm restart
+service php7.2-fpm restart
 
 # Install Node
 
@@ -153,26 +173,6 @@ apt-get install -y nodejs
 # Install SQLite
 
 apt-get install -y sqlite3 libsqlite3-dev
-
-# Install MySQL
-
-debconf-set-selections <<< "mysql-community-server mysql-community-server/root-pass password ${MYSQL_ROOT_PASSWORD}"
-debconf-set-selections <<< "mysql-community-server mysql-community-server/re-root-pass password ${MYSQL_ROOT_PASSWORD}"
-apt-get install -y mysql-server
-
-# Configure MySQL Password Lifetime
-
-echo "default_password_lifetime = 0" >> /etc/mysql/mysql.conf.d/mysqld.cnf
-
-mysql --user="root" --password="${MYSQL_ROOT_PASSWORD}" -e "CREATE USER '${MYSQL_NORMAL_USER}'@'0.0.0.0' IDENTIFIED BY '${MYSQL_NORMAL_USER_PASSWORD}';"
-mysql --user="root" --password="${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL ON *.* TO '${MYSQL_NORMAL_USER}'@'127.0.0.1' IDENTIFIED BY '${MYSQL_NORMAL_USER_PASSWORD}' WITH GRANT OPTION;"
-mysql --user="root" --password="${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL ON *.* TO '${MYSQL_NORMAL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_NORMAL_USER_PASSWORD}' WITH GRANT OPTION;"
-mysql --user="root" --password="${MYSQL_ROOT_PASSWORD}" -e "FLUSH PRIVILEGES;"
-service mysql restart
-
-# Add Timezone Support To MySQL
-
-mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql --user=root --password=${MYSQL_ROOT_PASSWORD} mysql
 
 # Install A Few Other Things
 
@@ -188,23 +188,11 @@ service supervisor start
 sed -i "s/#START=yes/START=yes/" /etc/default/beanstalkd
 /etc/init.d/beanstalkd start
 
-# One last upgrade check
-
-apt-get -y upgrade
-
-# Clean Up
-
-apt-get -y autoremove
-apt-get -y clean
-
 # Enable Swap Memory
 
 /bin/dd if=/dev/zero of=/var/swap.1 bs=1M count=1024
 /sbin/mkswap /var/swap.1
 /sbin/swapon /var/swap.1
-
-apt-get -y autoremove;
-apt-get -y clean;
 
 clear
 echo "--"
