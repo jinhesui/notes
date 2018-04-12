@@ -3,7 +3,7 @@
 ####    软件信息
 *  Ubuntu 16.04
 *  Git
-*  PHP 7.2
+*  PHP 7.1
 *  Nginx
 *  MySQL 5.7
 *  Sqlite3
