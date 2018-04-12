@@ -13,7 +13,7 @@
 *  Memcached
 *  Beanstalkd
 
-####    安装步骤
+######    安装步骤
 1). 下载 provision.sh 脚本
 ```
     wget https://raw.githubusercontent.com/jinhesui/notes/master/provision.sh
@@ -21,6 +21,7 @@
 2). 设置 MYSQL 密码
 
      vi provision.sh 根据情况修改以下：
+     
 ```
     # Configure
     MYSQL_ROOT_PASSWORD="这里填写复杂的密码"
@@ -31,7 +32,7 @@
 ```
     ./provision.sh
 ```
-####     安装后会有类似输出：
+######     安装后会有类似输出：
 ```
     --
     --
@@ -42,7 +43,7 @@
     --
     --
 ```
-     安装完以后的配置和注意事项
+######     安装完以后的配置和注意事项
 1. 修改站点目录权限
     通过此脚本配置的 Nginx 将使用 www 用户权限，因此需要在你的站点根目录下运行以下命令更新权限。
 ```
@@ -93,8 +94,8 @@ server {
 }
 ```
 
-     配置完以后重启 Nginx 即可。
-     
+######     配置完以后重启 Nginx 即可。
+
 ```
 service nginx restart
 ```
