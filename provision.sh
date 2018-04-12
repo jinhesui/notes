@@ -188,14 +188,23 @@ service supervisor start
 sed -i "s/#START=yes/START=yes/" /etc/default/beanstalkd
 /etc/init.d/beanstalkd start
 
+# One last upgrade check
+
+apt-get -y upgrade
+
+# Clean Up
+
+apt-get -y autoremove
+apt-get -y clean
+
 # Enable Swap Memory
 
 /bin/dd if=/dev/zero of=/var/swap.1 bs=1M count=1024
 /sbin/mkswap /var/swap.1
 /sbin/swapon /var/swap.1
 
-# remove apache2
-apt-get purge apache2 -y
+apt-get -y autoremove;
+apt-get -y clean;
 
 clear
 echo "--"
