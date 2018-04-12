@@ -6,9 +6,9 @@ export DEBIAN_FRONTEND=noninteractive
 [ $(id -u) != "0" ] && { echo "${CFAILURE}Error: You must be root to run this script${CEND}"; exit 1; }
 
 # Configure
-MYSQL_ROOT_PASSWORD="p>3dk!=3tZi#"
-MYSQL_NORMAL_USER="estuser"
-MYSQL_NORMAL_USER_PASSWORD="puYpjslLV0<k"
+MYSQL_ROOT_PASSWORD="root密码"
+MYSQL_NORMAL_USER="用户名"
+MYSQL_NORMAL_USER_PASSWORD="密码"
 
 # Check if password is defined
 if [[ "$MYSQL_ROOT_PASSWORD" == "" ]]; then
@@ -20,11 +20,6 @@ if [[ "$MYSQL_NORMAL_USER_PASSWORD" == "" ]]; then
     exit 1;
 fi
 
-# Force Locale
-
-export LC_ALL="en_US.UTF-8"
-echo "LC_ALL=en_US.UTF-8" >> /etc/default/locale
-locale-gen en_US.UTF-8
 
 # Add www user and group
 addgroup www
@@ -68,11 +63,11 @@ ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 # Install PHP Stuffs
 
-apt-get install -y --force-yes php7.1-cli php7.1 \
-php-pgsql php-sqlite3 php-gd php-apcu \
-php-curl php7.1-mcrypt \
-php-imap php-mysql php-memcached php7.1-readline php-xdebug \
-php-mbstring php-xml php7.1-zip php7.1-intl php7.1-bcmath php-soap
+apt-get install -y --force-yes php7.2-cli php7.2 \
+php7.2-pgsql php7.2-sqlite3 php7.2-gd php7.2-apcu \
+php7.2-curl php7.2-mcrypt \
+php7.2-imap php7.2-mysql php7.2-memcached php7.2-readline php-xdebug \
+php7.2-mbstring php7.2-xml php7.2-zip php7.2-intl php7.2-bcmath php7.2-soap
 
 # Install Composer
 
@@ -84,48 +79,48 @@ printf "\nPATH=\"$(composer config -g home 2>/dev/null)/vendor/bin:\$PATH\"\n" |
 
 # Set Some PHP CLI Settings
 
-sudo sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.1/cli/php.ini
-sudo sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.1/cli/php.ini
-sudo sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.1/cli/php.ini
-sudo sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.1/cli/php.ini
+sudo sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.2/cli/php.ini
+sudo sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.2/cli/php.ini
+sudo sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.2/cli/php.ini
+sudo sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.2/cli/php.ini
 
 # Install Nginx & PHP-FPM
 
-apt-get install -y --force-yes nginx php7.1-fpm
+apt-get install -y --force-yes nginx php7.2-fpm
 
 # Setup Some PHP-FPM Options
 
-sed -i "s/error_reporting = .*/error_reporting = E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED/" /etc/php/7.1/fpm/php.ini
-sed -i "s/display_errors = .*/display_errors = Off/" /etc/php/7.1/fpm/php.ini
-sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/7.1/fpm/php.ini
-sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.1/fpm/php.ini
-sed -i "s/upload_max_filesize = .*/upload_max_filesize = 50M/" /etc/php/7.1/fpm/php.ini
-sed -i "s/post_max_size = .*/post_max_size = 50M/" /etc/php/7.1/fpm/php.ini
-sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.1/fpm/php.ini
-sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php/7.1/fpm/pool.d/www.conf
+sed -i "s/error_reporting = .*/error_reporting = E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED/" /etc/php/7.2/fpm/php.ini
+sed -i "s/display_errors = .*/display_errors = Off/" /etc/php/7.2/fpm/php.ini
+sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/7.2/fpm/php.ini
+sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.2/fpm/php.ini
+sed -i "s/upload_max_filesize = .*/upload_max_filesize = 50M/" /etc/php/7.2/fpm/php.ini
+sed -i "s/post_max_size = .*/post_max_size = 50M/" /etc/php/7.2/fpm/php.ini
+sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.2/fpm/php.ini
+sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php/7.2/fpm/pool.d/www.conf
 
 # Setup Some fastcgi_params Options
 
 cat > /etc/nginx/fastcgi_params << EOF
-fastcgi_param	QUERY_STRING		\$query_string;
-fastcgi_param	REQUEST_METHOD		\$request_method;
-fastcgi_param	CONTENT_TYPE		\$content_type;
-fastcgi_param	CONTENT_LENGTH		\$content_length;
-fastcgi_param	SCRIPT_FILENAME		\$request_filename;
-fastcgi_param	SCRIPT_NAME		\$fastcgi_script_name;
-fastcgi_param	REQUEST_URI		\$request_uri;
-fastcgi_param	DOCUMENT_URI		\$document_uri;
-fastcgi_param	DOCUMENT_ROOT		\$document_root;
-fastcgi_param	SERVER_PROTOCOL		\$server_protocol;
-fastcgi_param	GATEWAY_INTERFACE	CGI/1.1;
-fastcgi_param	SERVER_SOFTWARE		nginx/\$nginx_version;
-fastcgi_param	REMOTE_ADDR		\$remote_addr;
-fastcgi_param	REMOTE_PORT		\$remote_port;
-fastcgi_param	SERVER_ADDR		\$server_addr;
-fastcgi_param	SERVER_PORT		\$server_port;
-fastcgi_param	SERVER_NAME		\$server_name;
-fastcgi_param	HTTPS			\$https if_not_empty;
-fastcgi_param	REDIRECT_STATUS		200;
+fastcgi_param   QUERY_STRING        \$query_string;
+fastcgi_param   REQUEST_METHOD      \$request_method;
+fastcgi_param   CONTENT_TYPE        \$content_type;
+fastcgi_param   CONTENT_LENGTH      \$content_length;
+fastcgi_param   SCRIPT_FILENAME     \$request_filename;
+fastcgi_param   SCRIPT_NAME     \$fastcgi_script_name;
+fastcgi_param   REQUEST_URI     \$request_uri;
+fastcgi_param   DOCUMENT_URI        \$document_uri;
+fastcgi_param   DOCUMENT_ROOT       \$document_root;
+fastcgi_param   SERVER_PROTOCOL     \$server_protocol;
+fastcgi_param   GATEWAY_INTERFACE   CGI/1.1;
+fastcgi_param   SERVER_SOFTWARE     nginx/\$nginx_version;
+fastcgi_param   REMOTE_ADDR     \$remote_addr;
+fastcgi_param   REMOTE_PORT     \$remote_port;
+fastcgi_param   SERVER_ADDR     \$server_addr;
+fastcgi_param   SERVER_PORT     \$server_port;
+fastcgi_param   SERVER_NAME     \$server_name;
+fastcgi_param   HTTPS           \$https if_not_empty;
+fastcgi_param   REDIRECT_STATUS     200;
 EOF
 
 # Set The Nginx & PHP-FPM User
@@ -133,15 +128,15 @@ EOF
 sed -i "s/user www-data;/user www;/" /etc/nginx/nginx.conf
 sed -i "s/# server_names_hash_bucket_size.*/server_names_hash_bucket_size 64;/" /etc/nginx/nginx.conf
 
-sed -i "s/user = www-data/user = www/" /etc/php/7.1/fpm/pool.d/www.conf
-sed -i "s/group = www-data/group = www/" /etc/php/7.1/fpm/pool.d/www.conf
+sed -i "s/user = www-data/user = www/" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s/group = www-data/group = www/" /etc/php/7.2/fpm/pool.d/www.conf
 
-sed -i "s/listen\.owner.*/listen.owner = www/" /etc/php/7.1/fpm/pool.d/www.conf
-sed -i "s/listen\.group.*/listen.group = www/" /etc/php/7.1/fpm/pool.d/www.conf
-sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.1/fpm/pool.d/www.conf
+sed -i "s/listen\.owner.*/listen.owner = www/" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s/listen\.group.*/listen.group = www/" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.2/fpm/pool.d/www.conf
 
 service nginx restart
-service php7.1-fpm restart
+service php7.2-fpm restart
 
 # Install Node
 
@@ -192,6 +187,9 @@ sed -i "s/#START=yes/START=yes/" /etc/default/beanstalkd
 /bin/dd if=/dev/zero of=/var/swap.1 bs=1M count=1024
 /sbin/mkswap /var/swap.1
 /sbin/swapon /var/swap.1
+
+# remove apache2
+apt-get purge apache2 -y
 
 clear
 echo "--"
