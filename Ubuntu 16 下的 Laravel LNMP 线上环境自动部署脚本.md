@@ -1,6 +1,6 @@
 ### 此脚本用于在一台全新的 Ubuntu 16.04 LTS 上部署适合 Laravel 使用的 LNMP 生产环境。
-    项目地址：https://github.com/jinhesui/notes/blob/master/provision.sh
-    软件信息
+####   项目地址：https://github.com/jinhesui/notes/blob/master/provision.sh
+####    软件信息
 *  Ubuntu 16.04
 *  Git
 *  PHP 7.2
@@ -12,7 +12,8 @@
 *  Redis
 *  Memcached
 *  Beanstalkd
-    安装步骤
+
+####    安装步骤
 1). 下载 provision.sh 脚本
 ```
     wget https://raw.githubusercontent.com/jinhesui/notes/master/provision.sh
@@ -30,7 +31,7 @@
 ```
     ./provision.sh
 ```
-     安装后会有类似输出：
+####     安装后会有类似输出：
 ```
     --
     --
@@ -91,7 +92,9 @@ server {
     }
 }
 ```
+
      配置完以后重启 Nginx 即可。
+     
 ```
 service nginx restart
 ```
