@@ -44,7 +44,7 @@ apt-get -y upgrade
 apt-get install -y software-properties-common curl
 
 apt-add-repository ppa:nginx/development -y
-apt-add-repository ppa:chris-lea/redis-server -y
+#apt-add-repository ppa:chris-lea/redis-server -y
 apt-add-repository ppa:ondrej/php -y
 
 # Using the default Ubuntu 16 MySQL 7 Build
@@ -52,7 +52,7 @@ apt-add-repository ppa:ondrej/php -y
 # apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 5072E1F5
 # sh -c 'echo "deb http://repo.mysql.com/apt/ubuntu/ xenial mysql-5.7" >> /etc/apt/sources.list.d/mysql.list'
 
-curl --silent --location https://deb.nodesource.com/setup_6.x | bash -
+curl --silent --location https://deb.nodesource.com/setup_8.x | bash -
 
 # Update Package Lists
 
@@ -60,7 +60,7 @@ apt-get update
 
 # Install Some Basic Packages
 
-apt-get install -y build-essential dos2unix gcc git libmcrypt4 libpcre3-dev \
+apt-get install -y build-essential dos2unix gcc git libmcrypt4 libpcre3-dev  libpng-dev ntp unzip \
 make python2.7-dev python-pip re2c supervisor unattended-upgrades whois vim libnotify-bin
 
 # Set My Timezone
