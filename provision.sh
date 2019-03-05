@@ -27,8 +27,8 @@ echo "LC_ALL=en_US.UTF-8" >> /etc/default/locale
 locale-gen en_US.UTF-8
 
 # Add www user and group
-addgroup www
-useradd -g www -d /home/www -c "www data" -m -s /usr/sbin/nologin www
+addgroup www-data
+useradd -g www-data -d /home/www -c "www data" -m -s /usr/sbin/nologin www
 
 # Update Package List
 
@@ -44,7 +44,6 @@ apt-get -y upgrade
 apt-get install -y software-properties-common curl
 
 apt-add-repository ppa:nginx/development -y
-#apt-add-repository ppa:chris-lea/redis-server -y
 apt-add-repository ppa:ondrej/php -y
 
 # Using the default Ubuntu 16 MySQL 7 Build
@@ -52,7 +51,7 @@ apt-add-repository ppa:ondrej/php -y
 # apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 5072E1F5
 # sh -c 'echo "deb http://repo.mysql.com/apt/ubuntu/ xenial mysql-5.7" >> /etc/apt/sources.list.d/mysql.list'
 
-curl --silent --location https://deb.nodesource.com/setup_8.x | bash -
+curl --silent --location https://deb.nodesource.com/setup_10.x | bash -
 
 # Update Package Lists
 
@@ -69,7 +68,7 @@ ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 # Install Nginx & PHP-FPM
 
-apt-get install -y --force-yes nginx php7.2-fpm
+apt-get install -y --force-yes nginx php7.3-fpm
 
 # Install MySQL
 
@@ -93,29 +92,30 @@ mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql --user=root --password=${MYSQL_R
 
 # Setup Some PHP-FPM Options
 
-sed -i "s/error_reporting = .*/error_reporting = E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED/" /etc/php/7.2/fpm/php.ini
-sed -i "s/display_errors = .*/display_errors = Off/" /etc/php/7.2/fpm/php.ini
-sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/7.2/fpm/php.ini
-sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.2/fpm/php.ini
-sed -i "s/upload_max_filesize = .*/upload_max_filesize = 50M/" /etc/php/7.2/fpm/php.ini
-sed -i "s/post_max_size = .*/post_max_size = 50M/" /etc/php/7.2/fpm/php.ini
-sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.2/fpm/php.ini
-sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s/error_reporting = .*/error_reporting = E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED/" /etc/php/7.3/fpm/php.ini
+sed -i "s/display_errors = .*/display_errors = Off/" /etc/php/7.3/fpm/php.ini
+sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/7.3/fpm/php.ini
+sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.3/fpm/php.ini
+sed -i "s/upload_max_filesize = .*/upload_max_filesize = 50M/" /etc/php/7.3/fpm/php.ini
+sed -i "s/post_max_size = .*/post_max_size = 50M/" /etc/php/7.3/fpm/php.ini
+sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.3/fpm/php.ini
+sed -i "s/listen =.*/listen = 127.0.0.1:9000/" /etc/php/7.3/fpm/pool.d/www.conf
 
 # Install PHP Stuffs
 
-apt-get install -y --force-yes php7.2-cli php7.2 \
-php-pgsql php-sqlite3 php-gd php-apcu \
-php-curl php-mcrypt \
-php-imap php-mysql php-memcached php7.2-readline php-xdebug \
-php-mbstring php-xml php-zip php-intl php-bcmath php-soap
+apt-get install -y --force-yes php7.3-cli php7.3 \
+php7.3-pgsql php7.3-sqlite3 php7.3-gd \
+php7.3-curl \
+php7.3-imap php7.3-mysql php7.3-mbstring \
+php7.3-xml php7.3-zip php7.3-bcmath php7.3-soap \
+php7.3-intl php7.3-readline
 
 # Set Some PHP CLI Settings
 
-sudo sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.2/cli/php.ini
-sudo sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.2/cli/php.ini
-sudo sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.2/cli/php.ini
-sudo sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.2/cli/php.ini
+sudo sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.3/cli/php.ini
+sudo sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.3/cli/php.ini
+sudo sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.3/cli/php.ini
+sudo sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.3/cli/php.ini
 
 # Install Composer
 
@@ -154,15 +154,15 @@ EOF
 sed -i "s/user www-data;/user www;/" /etc/nginx/nginx.conf
 sed -i "s/# server_names_hash_bucket_size.*/server_names_hash_bucket_size 64;/" /etc/nginx/nginx.conf
 
-sed -i "s/user = www-data/user = www/" /etc/php/7.2/fpm/pool.d/www.conf
-sed -i "s/group = www-data/group = www/" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s/user = www-data/user = www/" /etc/php/7.3/fpm/pool.d/www.conf
+sed -i "s/group = www-data/group = www/" /etc/php/7.3/fpm/pool.d/www.conf
 
-sed -i "s/listen\.owner.*/listen.owner = www/" /etc/php/7.2/fpm/pool.d/www.conf
-sed -i "s/listen\.group.*/listen.group = www/" /etc/php/7.2/fpm/pool.d/www.conf
-sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s/listen\.owner.*/listen.owner = www/" /etc/php/7.3/fpm/pool.d/www.conf
+sed -i "s/listen\.group.*/listen.group = www/" /etc/php/7.3/fpm/pool.d/www.conf
+sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.3/fpm/pool.d/www.conf
 
 service nginx restart
-service php7.2-fpm restart
+service php7.3-fpm restart
 
 # Install Node
 
